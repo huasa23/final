@@ -9,6 +9,7 @@ const NavWrapper = styled.nav`
 const NavList = styled.ul`
     display: flex;
     flex-direction: row;
+    margin-top: 5%;
     justify-content: flex-end;
     list-style: none;
     li:last-child {

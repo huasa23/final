@@ -115,7 +115,7 @@ export default function Dashboard() {
         <RankingWrapper></RankingWrapper>
         <MapWrapper>
           <CanvasWrapper>
-            <canvas style={{backgroundColor: "blue"}} ref={canvasRef} width="700" height="700"></canvas>
+            <canvas ref={canvasRef} width="700" height="700"></canvas>
           </CanvasWrapper>
           <ProgressWrapper>
             <ControlsWrapper>

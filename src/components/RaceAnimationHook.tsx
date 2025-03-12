@@ -81,14 +81,41 @@ const useCanvasAnimation = () => {
         .catch((error) => {console.error("Error loading data:", error)});
   }, []);
   
-  const drawPoint = (x: number, y: number) => {
+  const drawPoint = (x: number, y: number, name: string, color: string) => {
     const ctx = canvasRef.current?.getContext('2d');
       if (ctx) {
         ctx.clearRect(0, 0, canvasRef.current?.width || 0, canvasRef.current?.height || 0);
         ctx.beginPath();
-        ctx.arc(x, y, 10, 0, Math.PI * 2);
-        ctx.fillStyle = 'red';
+        ctx.arc(x, y, 5, 0, Math.PI * 2);
+        ctx.fillStyle = color;
         ctx.fill();
+
+        const textX = x + 10;
+        const textY = y - 10;
+
+        ctx.font = '16px Arial';
+        const textWidth = ctx.measureText(name).width;
+        
+        // 绘制圆角矩形背景
+        const padding = 3;
+        const rectX = textX - padding;
+        const rectY = textY - 13; // 文本高度约为16px
+        const rectWidth = textWidth + padding * 2;
+        const rectHeight = 22;
+        const cornerRadius = 6;
+
+        ctx.beginPath();
+        ctx.roundRect(rectX, rectY, rectWidth, rectHeight, cornerRadius);
+        ctx.fillStyle = 'rgba(220, 220, 220, 0)';
+        ctx.fill();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        
+        // 绘制文本
+        ctx.fillStyle = color;
+        ctx.textBaseline = 'middle';
+        ctx.fillText(name, textX, textY);
         ctx.closePath();
       }
     //console.log("drawPoint", x, y);
@@ -148,7 +175,7 @@ const useCanvasAnimation = () => {
           const scaledY = (interpolatedY - minY) * scale + offsetY;
           
           //console.log("scaledX", scaledX, "scaledY", scaledY);
-          drawPoint(scaledX, scaledY);
+          drawPoint(scaledX, scaledY, "HAM", "red");
     
           const elapsedTime = new Date(data[currentIndex1].date).getTime() - startTime;
           updateTimeDisplay(elapsedTime);
@@ -215,7 +242,7 @@ const useCanvasAnimation = () => {
       const point = data[newIndex];
       const scaledX = (point.x - minX) * scale + offsetX;
       const scaledY = (point.y - minY) * scale + offsetY;
-      drawPoint(scaledX, scaledY);
+      drawPoint(scaledX, scaledY, "HAM", "red");
       const elapsedTime = (new Date(data[newIndex].date).getTime() - startTime); // 转换为秒
       updateTimeDisplay(elapsedTime);
     }

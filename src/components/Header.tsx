@@ -4,7 +4,7 @@ const HeaderWrapper = styled.div`
   margin: auto 0;
 `
 const Title = styled.h1`
-font-size: calc(10px + 3vw);
+  font-size: calc(10px + 3vw);
   font-family: "Oxanium", sans-serif;
   font-optical-sizing: auto;
   font-weight: 400;
