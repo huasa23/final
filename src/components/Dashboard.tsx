@@ -25,6 +25,12 @@ const CanvasWrapper = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+  position: relative;
+`;
+const Canvas = styled.canvas`
+  position: absolute;
+  top: 0;
+  left: auto;
 `;
 const ProgressWrapper = styled.div`
   width: 100%;
@@ -94,6 +100,7 @@ export default function Dashboard() {
 
   const {
     canvasRef,
+    canvasBgRef,
     progressBarContainerRef,
     progressBarRef,
     progressButtonRef,
@@ -115,7 +122,10 @@ export default function Dashboard() {
         <RankingWrapper></RankingWrapper>
         <MapWrapper>
           <CanvasWrapper>
-            <canvas ref={canvasRef} width="700" height="700"></canvas>
+           
+            <Canvas ref={canvasBgRef} width="700" height="700"></Canvas>
+            <Canvas ref={canvasRef} width="700" height="700"></Canvas>
+           
           </CanvasWrapper>
           <ProgressWrapper>
             <ControlsWrapper>

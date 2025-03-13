@@ -1,15 +1,16 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from "react";
 
 const useCanvasAnimation = () => {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const progressBarRef = useRef<HTMLDivElement>(null);
-    const progressButtonRef = useRef<HTMLDivElement>(null);
-    const startButtonRef = useRef<HTMLButtonElement>(null);
-    const pauseButtonRef = useRef<HTMLButtonElement>(null);
-    const currentTimeDisplayRef = useRef<HTMLDivElement>(null);
-    const totalTimeDisplayRef = useRef<HTMLDivElement>(null);
-    const progressBarContainerRef = useRef<HTMLDivElement>(null);
-    
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasBgRef = useRef<HTMLCanvasElement>(null);
+  const progressBarRef = useRef<HTMLDivElement>(null);
+  const progressButtonRef = useRef<HTMLDivElement>(null);
+  const startButtonRef = useRef<HTMLButtonElement>(null);
+  const pauseButtonRef = useRef<HTMLButtonElement>(null);
+  const currentTimeDisplayRef = useRef<HTMLDivElement>(null);
+  const totalTimeDisplayRef = useRef<HTMLDivElement>(null);
+  const progressBarContainerRef = useRef<HTMLDivElement>(null);
+
   const [currentIndex, setCurrentIndex] = useState<number>(1);
   const [lastIndex, setLastIndex] = useState<number>(0);
   const [lastUpdateTime, setLastUpdateTime] = useState<number>(0);
@@ -24,6 +25,8 @@ const useCanvasAnimation = () => {
   const [offsetY, setOffsetY] = useState(0);
   const [scaleX, setScaleX] = useState(0);
   const [scaleY, setScaleY] = useState(0);
+  const [mapWidth, setMapWidth] = useState(650);
+  const [mapHeight, setMapHeight] = useState(650);
 
   const [isDragging, setIsDragging] = useState(false);
   const [isPaused, setIsPaused] = useState(true);
@@ -31,94 +34,161 @@ const useCanvasAnimation = () => {
   const [totalDuration, setTotalDuration] = useState(0);
   const [startTime, setStartTime] = useState(0);
   const [endTime, setEndTime] = useState(0);
-  const [progressBarRect, setProgressBarRect] = useState({left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0});
+  const [progressBarRect, setProgressBarRect] = useState({
+    left: 0,
+    top: 0,
+    right: 0,
+    bottom: 0,
+    width: 0,
+    height: 0,
+  });
   const [dragOffsetX, setDragOffsetX] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
 
   useEffect(() => {
     fetch("/mexico_data.json")
-        .then((response) => response.json())
-        .then((jsonData: { x: number; y: number; date: string }[]) => {
-          const minX = Math.min(...jsonData.map((p) => p.x));
-          const minY = Math.min(...jsonData.map((p) => p.y));
-          const maxX = Math.max(...jsonData.map((p) => p.x));
-          const maxY = Math.max(...jsonData.map((p) => p.y));
-          if (canvasRef.current) {
-            const newScaleX = canvasRef.current.width / (maxX - minX);
-            const newScaleY = canvasRef.current.height / (maxY - minY);
-            const scale = Math.min(newScaleX, newScaleY);
-            
-            setScaleX(newScaleX);
-            setScaleY(newScaleY);
-            setScale(Math.min(newScaleX, newScaleY)); // 选择较小的缩放因子以适应正方形
-            // 平移坐标，使原点位于边界中心
-            setOffsetX((canvasRef.current.width - (maxX - minX) * scale) / 2);
-            setOffsetY((canvasRef.current.height - (maxY - minY) * scale) / 2);
+      .then((response) => response.json())
+      .then((jsonData: { x: number; y: number; date: string }[]) => {
+        const minX = Math.min(...jsonData.map((p) => p.x));
+        const minY = Math.min(...jsonData.map((p) => p.y));
+        const maxX = Math.max(...jsonData.map((p) => p.x));
+        const maxY = Math.max(...jsonData.map((p) => p.y));
+        if (canvasRef.current) {
+          const newScaleX = mapWidth / (maxX - minX);
+          const newScaleY = mapHeight / (maxY - minY);
+          const scale = Math.min(newScaleX, newScaleY);
+          console.log("newScaleX", newScaleX, "newScaleY", newScaleY);
+          setScaleX(newScaleX);
+          setScaleY(newScaleY);
+          setScale(Math.min(newScaleX, newScaleY));
+
+          setOffsetX((mapWidth - (maxX - minX) * scale) / 2);
+          setOffsetY((mapHeight - (maxY - minY) * scale) / 2);
+        }
+
+        setData(jsonData);
+        setMinX(Math.min(...jsonData.map((p) => p.x)));
+        setMinY(Math.min(...jsonData.map((p) => p.y)));
+        setMaxX(Math.max(...jsonData.map((p) => p.x)));
+        setMaxY(Math.max(...jsonData.map((p) => p.y)));
+
+        const startDate = new Date(jsonData[0].date).getTime();
+        const endDate = new Date(jsonData[jsonData.length - 1].date).getTime();
+        const duration = endDate - startDate;
+
+        setStartTime(startDate);
+        setEndTime(endDate);
+        setTotalDuration(duration);
+
+        if (totalTimeDisplayRef.current) {
+          totalTimeDisplayRef.current.textContent = `${formatTime(duration)}`;
+        }
+
+        setProgressBarRect(
+          progressBarContainerRef.current?.getBoundingClientRect() || {
+            left: 0,
+            top: 0,
+            right: 0,
+            bottom: 0,
+            width: 0,
+            height: 0,
           }
-
-          setData(jsonData);
-          setMinX(Math.min(...jsonData.map((p) => p.x)));
-          setMinY(Math.min(...jsonData.map((p) => p.y)));
-          setMaxX(Math.max(...jsonData.map((p) => p.x)));
-          setMaxY(Math.max(...jsonData.map((p) => p.y)));
-
-          const startDate = new Date(jsonData[0].date).getTime();
-          const endDate = new Date(jsonData[jsonData.length - 1].date).getTime();
-          const duration = endDate - startDate;
-          
-          setStartTime(startDate);
-          setEndTime(endDate);
-          setTotalDuration(duration);
-          
-          if (totalTimeDisplayRef.current) {
-            totalTimeDisplayRef.current.textContent = `${formatTime(duration)}`;
-          }
-
-          setProgressBarRect(progressBarContainerRef.current?.getBoundingClientRect()|| { left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0 }); // 获取进度条容器的边界
-          updateProgressBar(0); // 初始化进度条
-          updateTimeDisplay(0); // 初始化时间显示
-        })
-        .catch((error) => {console.error("Error loading data:", error)});
+        );
+        updateProgressBar(0);
+        updateTimeDisplay(0);
+      })
+      .catch((error) => {
+        console.error("Error loading data:", error);
+      });
   }, []);
-  
+
+  useEffect(() => {
+    fetch("/mexico_race.png")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("网络响应不正常");
+        }
+        return response.blob();
+      })
+      .then((blob) => {
+        
+        const imageUrl = URL.createObjectURL(blob);
+
+        const img = new Image();
+        img.src = imageUrl;
+        const ctx = canvasBgRef.current?.getContext("2d");
+        img.onload = () => {
+          const imgWidth = img.width;
+          const imgHeight = img.height;
+          console.log("imgWidth", imgWidth, "imgHeight", imgHeight);
+
+          const cropWidth = 970;
+          const cropHeight = 970;
+          const cropX = (imgWidth - cropWidth) / 2;
+          const cropY = 0;
+
+          ctx?.save();
+          ctx?.drawImage(
+            img,
+            cropX,
+            cropY,
+            cropWidth,
+            cropHeight, 
+            0,
+            0,
+            canvasBgRef.current?.width || 0,
+            canvasBgRef.current?.height || 0 
+          );
+
+          ctx?.restore();
+          URL.revokeObjectURL(imageUrl);
+        };
+      })
+      .catch((error) => {
+        console.error("获取图片失败:", error);
+      });
+  }, []);
+
   const drawPoint = (x: number, y: number, name: string, color: string) => {
-    const ctx = canvasRef.current?.getContext('2d');
-      if (ctx) {
-        ctx.clearRect(0, 0, canvasRef.current?.width || 0, canvasRef.current?.height || 0);
-        ctx.beginPath();
-        ctx.arc(x, y, 5, 0, Math.PI * 2);
-        ctx.fillStyle = color;
-        ctx.fill();
+    const ctx = canvasRef.current?.getContext("2d");
+    if (ctx) {
+      ctx.clearRect(
+        0,
+        0,
+        canvasRef.current?.width || 0,
+        canvasRef.current?.height || 0
+      );
+      ctx.beginPath();
+      ctx.arc(x, y, 8, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
 
-        const textX = x + 10;
-        const textY = y - 10;
+      const textX = x + 12;
+      const textY = y - 12;
 
-        ctx.font = '16px Arial';
-        const textWidth = ctx.measureText(name).width;
-        
-        // 绘制圆角矩形背景
-        const padding = 3;
-        const rectX = textX - padding;
-        const rectY = textY - 13; // 文本高度约为16px
-        const rectWidth = textWidth + padding * 2;
-        const rectHeight = 22;
-        const cornerRadius = 6;
+      ctx.font = "24px Arial";
+      const textWidth = ctx.measureText(name).width;
 
-        ctx.beginPath();
-        ctx.roundRect(rectX, rectY, rectWidth, rectHeight, cornerRadius);
-        ctx.fillStyle = 'rgba(220, 220, 220, 0)';
-        ctx.fill();
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 1;
-        ctx.stroke();
-        
-        // 绘制文本
-        ctx.fillStyle = color;
-        ctx.textBaseline = 'middle';
-        ctx.fillText(name, textX, textY);
-        ctx.closePath();
-      }
-    //console.log("drawPoint", x, y);
+      const padding = 3;
+      const rectX = textX - padding;
+      const rectY = textY - 15;
+      const rectWidth = textWidth + padding * 2;
+      const rectHeight = 30;
+      const cornerRadius = 6;
+
+      ctx.beginPath();
+      ctx.roundRect(rectX, rectY, rectWidth, rectHeight, cornerRadius);
+      ctx.fillStyle = "rgba(220, 220, 220, 0)";
+      ctx.fill();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.fillStyle = color;
+      ctx.textBaseline = "middle";
+      ctx.fillText(name, textX, textY);
+      ctx.closePath();
+    }
   };
 
   const updateProgressBar = (progress: number) => {
@@ -139,7 +209,10 @@ const useCanvasAnimation = () => {
     const totalSeconds = Math.floor(milliseconds / 1000);
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
-    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
+      2,
+      "0"
+    )}`;
   };
 
   useEffect(() => {
@@ -148,62 +221,73 @@ const useCanvasAnimation = () => {
     let lastUpdateTime1 = 0;
 
     const updatePoint = (timestamp: number) => {
-        if (lastUpdateTime === 0) {
-          setLastUpdateTime(timestamp);
-        }
-        if (currentIndex1 < data.length && lastIndex1 < data.length) {
-          const interval = new Date(data[currentIndex1].date).getTime() - new Date(data[lastIndex1].date).getTime();
-          
-          let timeElapsed = timestamp - lastUpdateTime1;
-          
-          let progressRatio = interval > 0 ? timeElapsed / interval : 0; // 防止除以零
-          if (progressRatio > 1) {
-            progressRatio = 1;
-          }
-    
-          const progress = currentIndex1 / data.length + progressRatio / data.length;
-          updateProgressBar(progress);
-    
-          const currentDataPoint = data[currentIndex1];
-          
-          const lastDataPoint = data[lastIndex1];
-          
-          const interpolatedX = lastDataPoint.x + (currentDataPoint.x - lastDataPoint.x) * progressRatio;
-          const interpolatedY = lastDataPoint.y + (currentDataPoint.y - lastDataPoint.y) * progressRatio;
-          
-          const scaledX = (interpolatedX - minX) * scale + offsetX;
-          const scaledY = (interpolatedY - minY) * scale + offsetY;
-          
-          //console.log("scaledX", scaledX, "scaledY", scaledY);
-          drawPoint(scaledX, scaledY, "HAM", "red");
-    
-          const elapsedTime = new Date(data[currentIndex1].date).getTime() - startTime;
-          updateTimeDisplay(elapsedTime);
-          
-          if (timeElapsed >= interval) {
-            lastUpdateTime1 = timestamp;
-            lastIndex1 = currentIndex1;
-            currentIndex1++;
-          }
+      if (lastUpdateTime === 0) {
+        setLastUpdateTime(timestamp);
+      }
+      if (currentIndex1 < data.length && lastIndex1 < data.length) {
+        const interval =
+          new Date(data[currentIndex1].date).getTime() -
+          new Date(data[lastIndex1].date).getTime();
 
-          setAnimationFrameId(requestAnimationFrame(timestamp => updatePoint(timestamp)));
-        } else {
-          cancelAnimationFrame(animationFrameId);
-          setIsPaused(true);
-          if (startButtonRef.current) {
-            startButtonRef.current.textContent = "Restart";
-          }
+        let timeElapsed = timestamp - lastUpdateTime1;
+
+        let progressRatio = interval > 0 ? timeElapsed / interval : 0; // 防止除以零
+        if (progressRatio > 1) {
+          progressRatio = 1;
         }
+
+        const progress =
+          currentIndex1 / data.length + progressRatio / data.length;
+        updateProgressBar(progress);
+
+        const currentDataPoint = data[currentIndex1];
+
+        const lastDataPoint = data[lastIndex1];
+
+        const interpolatedX =
+          lastDataPoint.x +
+          (currentDataPoint.x - lastDataPoint.x) * progressRatio;
+        const interpolatedY =
+          lastDataPoint.y +
+          (currentDataPoint.y - lastDataPoint.y) * progressRatio;
+
+        const scaledX = (interpolatedX - minX) * scale + offsetX;
+        const scaledY = (interpolatedY - minY) * scale + offsetY;
+
+        //console.log("scaledX", scaledX, "scaledY", scaledY);
+        drawPoint(scaledX, scaledY, "HAM", "red");
+
+        const elapsedTime =
+          new Date(data[currentIndex1].date).getTime() - startTime;
+        updateTimeDisplay(elapsedTime);
+
+        if (timeElapsed >= interval) {
+          lastUpdateTime1 = timestamp;
+          lastIndex1 = currentIndex1;
+          currentIndex1++;
+        }
+
+        setAnimationFrameId(
+          requestAnimationFrame((timestamp) => updatePoint(timestamp))
+        );
+      } else {
+        cancelAnimationFrame(animationFrameId);
+        setIsPaused(true);
+        if (startButtonRef.current) {
+          startButtonRef.current.textContent = "Restart";
+        }
+      }
     };
     if (!isPaused) {
-      setAnimationFrameId(requestAnimationFrame(timestamp => updatePoint(timestamp)));
+      setAnimationFrameId(
+        requestAnimationFrame((timestamp) => updatePoint(timestamp))
+      );
     } else {
       console.log("cancelAnimationFrame", animationFrameId);
       cancelAnimationFrame(animationFrameId);
     }
   }, [isPaused]);
-  
-  
+
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     console.log("handleMouseDown");
     setIsDragging(true);
@@ -211,8 +295,21 @@ const useCanvasAnimation = () => {
     if (pauseButtonRef.current) {
       pauseButtonRef.current.textContent = "Resume";
     }
-    setDragOffsetX(e.clientX - (progressButtonRef.current?.offsetLeft || 0) - progressBarRect.left);
-    setProgressBarRect(progressBarContainerRef.current?.getBoundingClientRect()|| { left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0 });
+    setDragOffsetX(
+      e.clientX -
+        (progressButtonRef.current?.offsetLeft || 0) -
+        progressBarRect.left
+    );
+    setProgressBarRect(
+      progressBarContainerRef.current?.getBoundingClientRect() || {
+        left: 0,
+        top: 0,
+        right: 0,
+        bottom: 0,
+        width: 0,
+        height: 0,
+      }
+    );
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -243,11 +340,11 @@ const useCanvasAnimation = () => {
       const scaledX = (point.x - minX) * scale + offsetX;
       const scaledY = (point.y - minY) * scale + offsetY;
       drawPoint(scaledX, scaledY, "HAM", "red");
-      const elapsedTime = (new Date(data[newIndex].date).getTime() - startTime); // 转换为秒
+      const elapsedTime = new Date(data[newIndex].date).getTime() - startTime; // 转换为秒
       updateTimeDisplay(elapsedTime);
     }
   };
-  
+
   const handleMouseUp = () => {
     console.log("handleMouseUp");
     setIsDragging(false);
@@ -278,7 +375,7 @@ const useCanvasAnimation = () => {
       setLastUpdateTime(performance.now());
       setIsPaused(false);
     } else {
-        console.log("handleStartButtonClick-restart");
+      console.log("handleStartButtonClick-restart");
       if (startButtonRef.current) {
         startButtonRef.current.textContent = "Start";
       }
@@ -320,6 +417,7 @@ const useCanvasAnimation = () => {
 
   return {
     canvasRef,
+    canvasBgRef,
     progressBarContainerRef,
     progressBarRef,
     progressButtonRef,
