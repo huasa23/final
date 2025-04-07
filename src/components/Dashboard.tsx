@@ -113,8 +113,7 @@ export default function Dashboard() {
     handleMouseDown,
     handleMouseMove,
     handleMouseUp,
-  } = useCanvasAnimation(
-  );
+  } = useCanvasAnimation();
 
   return (
     <>

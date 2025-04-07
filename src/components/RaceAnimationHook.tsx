@@ -53,7 +53,7 @@ const useCanvasAnimation = () => {
         const minY = Math.min(...jsonData.map((p) => p.y));
         const maxX = Math.max(...jsonData.map((p) => p.x));
         const maxY = Math.max(...jsonData.map((p) => p.y));
-        if (canvasRef.current) {
+        // if (canvasRef.current) {
           const newScaleX = mapWidth / (maxX - minX);
           const newScaleY = mapHeight / (maxY - minY);
           const scale = Math.min(newScaleX, newScaleY);
@@ -64,7 +64,7 @@ const useCanvasAnimation = () => {
 
           setOffsetX((mapWidth - (maxX - minX) * scale) / 2);
           setOffsetY((mapHeight - (maxY - minY) * scale) / 2);
-        }
+        // }
 
         setData(jsonData);
         setMinX(Math.min(...jsonData.map((p) => p.x)));
@@ -103,7 +103,7 @@ const useCanvasAnimation = () => {
   }, []);
 
   useEffect(() => {
-    fetch("/mexico_race.png")
+    fetch("/mexico.png")
       .then((response) => {
         if (!response.ok) {
           throw new Error("网络响应不正常");
@@ -122,23 +122,24 @@ const useCanvasAnimation = () => {
           const imgHeight = img.height;
           console.log("imgWidth", imgWidth, "imgHeight", imgHeight);
 
-          const cropWidth = 970;
-          const cropHeight = 970;
-          const cropX = (imgWidth - cropWidth) / 2;
-          const cropY = 0;
+          // const cropWidth = 970;
+          // const cropHeight = 970;
+          // const cropX = (imgWidth - cropWidth) / 2;
+          // const cropY = 0;
 
-          ctx?.save();
-          ctx?.drawImage(
-            img,
-            cropX,
-            cropY,
-            cropWidth,
-            cropHeight, 
-            0,
-            0,
-            canvasBgRef.current?.width || 0,
-            canvasBgRef.current?.height || 0 
-          );
+          // ctx?.save();
+          // ctx?.drawImage(
+          //   img,
+          //   cropX,
+          //   cropY,
+          //   cropWidth,
+          //   cropHeight, 
+          //   0,
+          //   0,
+          //   canvasBgRef.current?.width || 0,
+          //   canvasBgRef.current?.height || 0 
+          // );
+          ctx?.drawImage(img, 0, 0, canvasBgRef.current?.width || 0, canvasBgRef.current?.height || 0);
 
           ctx?.restore();
           URL.revokeObjectURL(imageUrl);
@@ -148,72 +149,6 @@ const useCanvasAnimation = () => {
         console.error("获取图片失败:", error);
       });
   }, []);
-
-  const drawPoint = (x: number, y: number, name: string, color: string) => {
-    const ctx = canvasRef.current?.getContext("2d");
-    if (ctx) {
-      ctx.clearRect(
-        0,
-        0,
-        canvasRef.current?.width || 0,
-        canvasRef.current?.height || 0
-      );
-      ctx.beginPath();
-      ctx.arc(x, y, 8, 0, Math.PI * 2);
-      ctx.fillStyle = color;
-      ctx.fill();
-
-      const textX = x + 12;
-      const textY = y - 12;
-
-      ctx.font = "24px Arial";
-      const textWidth = ctx.measureText(name).width;
-
-      const padding = 3;
-      const rectX = textX - padding;
-      const rectY = textY - 15;
-      const rectWidth = textWidth + padding * 2;
-      const rectHeight = 30;
-      const cornerRadius = 6;
-
-      ctx.beginPath();
-      ctx.roundRect(rectX, rectY, rectWidth, rectHeight, cornerRadius);
-      ctx.fillStyle = "rgba(220, 220, 220, 0)";
-      ctx.fill();
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 1;
-      ctx.stroke();
-
-      ctx.fillStyle = color;
-      ctx.textBaseline = "middle";
-      ctx.fillText(name, textX, textY);
-      ctx.closePath();
-    }
-  };
-
-  const updateProgressBar = (progress: number) => {
-    if (progressBarRef.current && progressButtonRef.current) {
-      progressBarRef.current.style.width = `${progress * 100}%`;
-      progressButtonRef.current.style.left = `${progress * 100}%`;
-    }
-  };
-
-  const updateTimeDisplay = (time: number) => {
-    setCurrentTime(time);
-    if (currentTimeDisplayRef.current) {
-      currentTimeDisplayRef.current.textContent = `${formatTime(currentTime)}`;
-    }
-  };
-
-  const formatTime = (milliseconds: number) => {
-    const totalSeconds = Math.floor(milliseconds / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
-      2,
-      "0"
-    )}`;
-  };
 
   useEffect(() => {
     let currentIndex1 = currentIndex;
@@ -231,7 +166,7 @@ const useCanvasAnimation = () => {
 
         let timeElapsed = timestamp - lastUpdateTime1;
 
-        let progressRatio = interval > 0 ? timeElapsed / interval : 0; // 防止除以零
+        let progressRatio = interval > 0 ? timeElapsed / interval : 0;
         if (progressRatio > 1) {
           progressRatio = 1;
         }
@@ -287,6 +222,72 @@ const useCanvasAnimation = () => {
       cancelAnimationFrame(animationFrameId);
     }
   }, [isPaused]);
+
+  const drawPoint = (x: number, y: number, name: string, color: string) => {
+    const ctx = canvasRef.current?.getContext("2d");
+    if (ctx) {
+      ctx.clearRect(
+        0,
+        0,
+        canvasRef.current?.width || 0,
+        canvasRef.current?.height || 0
+      );
+      ctx.beginPath();
+      ctx.arc(x+10, y, 6, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+
+      const textX = x + 12;
+      const textY = y - 12;
+
+      ctx.font = "15px Arial";
+      const textWidth = ctx.measureText(name).width;
+
+      const padding = 3;
+      const rectX = textX - padding;
+      const rectY = textY - 8;
+      const rectWidth = textWidth + padding * 2;
+      const rectHeight = 15;
+      const cornerRadius = 6;
+
+      ctx.beginPath();
+      ctx.roundRect(rectX, rectY, rectWidth, rectHeight, cornerRadius);
+      ctx.fillStyle = "rgba(220, 220, 220, 0)";
+      ctx.fill();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.fillStyle = color;
+      ctx.textBaseline = "middle";
+      ctx.fillText(name, textX, textY);
+      ctx.closePath();
+    }
+  };
+
+  const updateProgressBar = (progress: number) => {
+    if (progressBarRef.current && progressButtonRef.current) {
+      progressBarRef.current.style.width = `${progress * 100}%`;
+      progressButtonRef.current.style.left = `${progress * 100}%`;
+    }
+  };
+
+  const updateTimeDisplay = (time: number) => {
+    setCurrentTime(time);
+    if (currentTimeDisplayRef.current) {
+      currentTimeDisplayRef.current.textContent = `${formatTime(time)}`;
+    }
+  };
+
+  const formatTime = (milliseconds: number) => {
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
+      2,
+      "0"
+    )}`;
+  };
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     console.log("handleMouseDown");
