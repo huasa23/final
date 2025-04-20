@@ -1,5 +1,9 @@
 import styled from "styled-components";
 import useCanvasAnimation from "./RaceAnimationHook";
+import { useParams } from "react-router-dom";
+import { useEffect } from "react";
+import dataService from "../services/dataService";
+
 const DashboardWrapper = styled.div`
   display: flex;
   flex-direction: row;
@@ -16,12 +20,12 @@ const MapWrapper = styled.div`
   height: 80vh;
   display: flex;
   flex-direction: column;
-  border: 1px solid black;
+  
 `;
 const CanvasWrapper = styled.div`
   width: 100%;
   height: 90%;
-  border: 1px solid black;
+  
   display: flex;
   justify-content: center;
   align-items: center;
@@ -35,7 +39,7 @@ const Canvas = styled.canvas`
 const ProgressWrapper = styled.div`
   width: 100%;
   height: 10%;
-  border: 1px solid black;
+  
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -43,7 +47,7 @@ const ProgressWrapper = styled.div`
 const ControlsWrapper = styled.div`
   width: 10%;
   height: 100%;
-  border: 1px solid black;
+  
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -52,8 +56,10 @@ const ControlButton = styled.button`
   width: 80%;
   height: 30%;
   margin: auto;
+  border-radius: 10px;
   border: 1px solid black;
-  background-color: steelblue;
+  background-color: black;
+  color: white;
 `;
 const ProgressContainer = styled.div`
   position: relative; /* 相对定位，为了按钮绝对定位 */
@@ -65,38 +71,36 @@ const ProgressContainer = styled.div`
 const ProgressBar = styled.div`
   height: 100%;
   width: 0%; /* 初始进度为0 */
-  background-color: steelblue;
+  background-color: black;
 `;
 const ProgressButton = styled.div`
-  position: absolute; /* 绝对定位在进度条上 */
-  
-  top: -0.5vw; /* 向上偏移一点，使其居中在进度条线上 */
-  left: 0%; /* 初始位置在最左侧 */
+  position: absolute; 
+  top: -0.5vw; 
+  left: 0%; 
   width: 2vw;
   height: 2vw;
-  background-color: steelblue;
-  border-radius: 30%; /* 圆形按钮 */
-  cursor: grab; /* 鼠标悬停时显示抓取光标 */
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* 阴影效果 */
+  background-color: black;
+  border-radius: 50%; 
+  cursor: grab; 
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); 
   &:active {
-    cursor: grabbing; /* 鼠标点击时显示抓取中光标 */
+    cursor: grabbing; 
   }
 `;
 
 const TimeDisplay = styled.div`
   width: 10%;
   height: 100%;
-  border: 1px solid black;
   display: flex;
   flex-direction: row;
   justify-content: center;
   align-items: center;
   font-size: 14px;
-  color: #555;
+  color: black;
 `;
 
 export default function Dashboard() {
-  
+  const params = useParams<{sessionId: string}>();
 
   const {
     canvasRef,
@@ -113,7 +117,7 @@ export default function Dashboard() {
     handleMouseDown,
     handleMouseMove,
     handleMouseUp,
-  } = useCanvasAnimation();
+  } = useCanvasAnimation(params.sessionId as string);
 
   return (
     <>

@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
+import dataService from "../services/dataService";
+import { Driver, Location, Position, CarData } from "../interfaces/interface";
 
-const useCanvasAnimation = () => {
+const useCanvasAnimation = (sessionId: string) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const canvasBgRef = useRef<HTMLCanvasElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
@@ -45,68 +47,98 @@ const useCanvasAnimation = () => {
   const [dragOffsetX, setDragOffsetX] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
 
+  const [allDriversData, setAllDriversData] = useState<Record<number, Driver>>({});
+  const [allDriversLocationData, setAllDriversLocationData] = useState<Record<number, Location[]>>({});
+  const [allDriversCarData, setAllDriversCarData] = useState<Record<number, CarData[]>>({});
+  const [positionData, setPositionData] = useState<Position[]>([]);
   useEffect(() => {
-    fetch("/mexico_data.json")
+    const fetchData = async () => {
+      const {allDriversData, allDriversLocationData, allDriversCarData, rankData} = await dataService(sessionId);
+      console.log("allDriversData", allDriversData);
+      console.log("allDriversLocationData", allDriversLocationData);
+      setAllDriversData(allDriversData);
+      setData(allDriversLocationData[1]);
+      setAllDriversLocationData(allDriversLocationData);
+
+      fetch("/position_data.json")
       .then((response) => response.json())
-      .then((jsonData: { x: number; y: number; date: string }[]) => {
-        const minX = Math.min(...jsonData.map((p) => p.x));
-        const minY = Math.min(...jsonData.map((p) => p.y));
-        const maxX = Math.max(...jsonData.map((p) => p.x));
-        const maxY = Math.max(...jsonData.map((p) => p.y));
-        // if (canvasRef.current) {
-          const newScaleX = mapWidth / (maxX - minX);
-          const newScaleY = mapHeight / (maxY - minY);
-          const scale = Math.min(newScaleX, newScaleY);
-          console.log("newScaleX", newScaleX, "newScaleY", newScaleY);
-          setScaleX(newScaleX);
-          setScaleY(newScaleY);
-          setScale(Math.min(newScaleX, newScaleY));
-
-          setOffsetX((mapWidth - (maxX - minX) * scale) / 2);
-          setOffsetY((mapHeight - (maxY - minY) * scale) / 2);
-        // }
-
-        setData(jsonData);
-        setMinX(Math.min(...jsonData.map((p) => p.x)));
-        setMinY(Math.min(...jsonData.map((p) => p.y)));
-        setMaxX(Math.max(...jsonData.map((p) => p.x)));
-        setMaxY(Math.max(...jsonData.map((p) => p.y)));
-
-        const startDate = new Date(jsonData[0].date).getTime();
-        const endDate = new Date(jsonData[jsonData.length - 1].date).getTime();
-        const duration = endDate - startDate;
-
-        setStartTime(startDate);
-        setEndTime(endDate);
-        setTotalDuration(duration);
-
-        if (totalTimeDisplayRef.current) {
-          totalTimeDisplayRef.current.textContent = `${formatTime(duration)}`;
-        }
-
-        setProgressBarRect(
-          progressBarContainerRef.current?.getBoundingClientRect() || {
-            left: 0,
-            top: 0,
-            right: 0,
-            bottom: 0,
-            width: 0,
-            height: 0,
-          }
-        );
-        updateProgressBar(0);
-        updateTimeDisplay(0);
-      })
-      .catch((error) => {
-        console.error("Error loading data:", error);
+      .then((jsonData: Position[]) => {
+        setPositionData(jsonData);
       });
-  }, []);
 
+      let car_data = new Array<CarData[]>(2);
+      fetch("/car_data_1.json")
+      .then((response) => response.json())
+      .then((jsonData: CarData[]) => {
+        car_data[0] = jsonData;
+      });
+      fetch("/car_data_2.json")
+      .then((response) => response.json())
+      .then((jsonData: CarData[]) => {
+        car_data[1] = jsonData;
+      });
+      setAllDriversCarData(car_data);
+      
+      mapDataSetup(allDriversLocationData);
+    };
+    fetchData();
+  }, [sessionId]);
+  
+  //map metadata setup
+  const mapDataSetup = (allDriversLocationData: Record<number, Location[]>) => {
+    const tempLocationData = allDriversLocationData[1];
+    const minX = Math.min(...tempLocationData.map((p) => p.x));
+    const minY = Math.min(...tempLocationData.map((p) => p.y));
+    const maxX = Math.max(...tempLocationData.map((p) => p.x));
+    const maxY = Math.max(...tempLocationData.map((p) => p.y));
+
+    const newScaleX = mapWidth / (maxX - minX);
+    const newScaleY = mapHeight / (maxY - minY);
+    const scale = Math.min(newScaleX, newScaleY);
+    console.log("newScaleX", newScaleX, "newScaleY", newScaleY);
+    setScaleX(newScaleX);
+    setScaleY(newScaleY);
+    setScale(Math.min(newScaleX, newScaleY));
+
+    setOffsetX((mapWidth - (maxX - minX) * scale) / 2);
+    setOffsetY((mapHeight - (maxY - minY) * scale) / 2);
+    setMinX(Math.min(...tempLocationData.map((p) => p.x)));
+    setMinY(Math.min(...tempLocationData.map((p) => p.y)));
+    setMaxX(Math.max(...tempLocationData.map((p) => p.x)));
+    setMaxY(Math.max(...tempLocationData.map((p) => p.y)));
+
+    const startDate = new Date(tempLocationData[0].date).getTime();
+    const endDate = new Date(tempLocationData[tempLocationData.length - 1].date).getTime();
+    const duration = endDate - startDate;
+
+    setStartTime(startDate);
+    setEndTime(endDate);
+    setTotalDuration(duration);
+
+    if (totalTimeDisplayRef.current) {
+      totalTimeDisplayRef.current.textContent = `${formatTime(duration)}`;
+    }
+
+    setProgressBarRect(
+      progressBarContainerRef.current?.getBoundingClientRect() || {
+        left: 0,
+        top: 0,
+        right: 0,
+        bottom: 0,
+        width: 0,
+        height: 0,
+      }
+    );
+    updateProgressBar(0);
+    updateTimeDisplay(0);
+  }
+
+  //load background image
   useEffect(() => {
     fetch("/mexico.png")
       .then((response) => {
         if (!response.ok) {
-          throw new Error("网络响应不正常");
+          throw new Error("Failed to fetch image");
         }
         return response.blob();
       })
@@ -121,35 +153,17 @@ const useCanvasAnimation = () => {
           const imgWidth = img.width;
           const imgHeight = img.height;
           console.log("imgWidth", imgWidth, "imgHeight", imgHeight);
-
-          // const cropWidth = 970;
-          // const cropHeight = 970;
-          // const cropX = (imgWidth - cropWidth) / 2;
-          // const cropY = 0;
-
-          // ctx?.save();
-          // ctx?.drawImage(
-          //   img,
-          //   cropX,
-          //   cropY,
-          //   cropWidth,
-          //   cropHeight, 
-          //   0,
-          //   0,
-          //   canvasBgRef.current?.width || 0,
-          //   canvasBgRef.current?.height || 0 
-          // );
           ctx?.drawImage(img, 0, 0, canvasBgRef.current?.width || 0, canvasBgRef.current?.height || 0);
-
           ctx?.restore();
           URL.revokeObjectURL(imageUrl);
         };
       })
       .catch((error) => {
-        console.error("获取图片失败:", error);
+        console.error("Failed to fetch image:", error);
       });
   }, []);
 
+  //draw driver point
   useEffect(() => {
     let currentIndex1 = currentIndex;
     let lastIndex1 = currentIndex - 1;
@@ -171,27 +185,21 @@ const useCanvasAnimation = () => {
           progressRatio = 1;
         }
 
-        const progress =
-          currentIndex1 / data.length + progressRatio / data.length;
+        const progress = currentIndex1 / data.length + progressRatio / data.length;
         updateProgressBar(progress);
 
-        const currentDataPoint = data[currentIndex1];
-
-        const lastDataPoint = data[lastIndex1];
-
-        const interpolatedX =
-          lastDataPoint.x +
-          (currentDataPoint.x - lastDataPoint.x) * progressRatio;
-        const interpolatedY =
-          lastDataPoint.y +
-          (currentDataPoint.y - lastDataPoint.y) * progressRatio;
-
-        const scaledX = (interpolatedX - minX) * scale + offsetX;
-        const scaledY = (interpolatedY - minY) * scale + offsetY;
-
-        //console.log("scaledX", scaledX, "scaledY", scaledY);
-        drawPoint(scaledX, scaledY, "HAM", "red");
-
+        clearScreen();
+        Object.entries(allDriversLocationData).forEach(([driverNumber, locations]) => {
+          const currentDataPoint = locations[currentIndex1];
+          const lastDataPoint = locations[lastIndex1];
+          const interpolatedX = lastDataPoint.x + (currentDataPoint.x - lastDataPoint.x) * progressRatio;
+          const interpolatedY = lastDataPoint.y + (currentDataPoint.y - lastDataPoint.y) * progressRatio;
+          const scaledX = (interpolatedX - minX) * scale + offsetX;
+          const scaledY = (interpolatedY - minY) * scale + offsetY;
+          console.log("driverNumber", driverNumber, "acronym", allDriversData[Number(driverNumber)].name_acronym, "color", allDriversData[Number(driverNumber)].team_colour);
+          drawPoint(scaledX, scaledY, allDriversData[Number(driverNumber)].name_acronym, allDriversData[Number(driverNumber)].team_colour);
+        });
+        
         const elapsedTime =
           new Date(data[currentIndex1].date).getTime() - startTime;
         updateTimeDisplay(elapsedTime);
@@ -223,18 +231,22 @@ const useCanvasAnimation = () => {
     }
   }, [isPaused]);
 
-  const drawPoint = (x: number, y: number, name: string, color: string) => {
+  //clear map canvas
+  const clearScreen = () => {
     const ctx = canvasRef.current?.getContext("2d");
     if (ctx) {
-      ctx.clearRect(
-        0,
-        0,
-        canvasRef.current?.width || 0,
-        canvasRef.current?.height || 0
-      );
+      ctx.clearRect(0, 0, canvasRef.current?.width || 0, canvasRef.current?.height || 0);
+    }
+  };
+
+  //draw driver point
+  const drawPoint = (x: number, y: number, name: string, color: string) => {
+    console.log("drawPoint", x, y, name, color);
+    const ctx = canvasRef.current?.getContext("2d");
+    if (ctx) {
       ctx.beginPath();
       ctx.arc(x+10, y, 6, 0, Math.PI * 2);
-      ctx.fillStyle = color;
+      ctx.fillStyle = `#${color}`;
       ctx.fill();
 
       const textX = x + 12;
@@ -254,11 +266,11 @@ const useCanvasAnimation = () => {
       ctx.roundRect(rectX, rectY, rectWidth, rectHeight, cornerRadius);
       ctx.fillStyle = "rgba(220, 220, 220, 0)";
       ctx.fill();
-      ctx.strokeStyle = color;
+      ctx.strokeStyle = `#${color}`;
       ctx.lineWidth = 1;
       ctx.stroke();
 
-      ctx.fillStyle = color;
+      ctx.fillStyle = `#${color}`;
       ctx.textBaseline = "middle";
       ctx.fillText(name, textX, textY);
       ctx.closePath();
@@ -361,6 +373,7 @@ const useCanvasAnimation = () => {
       if (pauseButtonRef.current) {
         pauseButtonRef.current.textContent = "Pause";
       }
+      console.log("data", data);
       if (currentIndex >= data.length) {
         setCurrentIndex(1);
         setLastIndex(0);
