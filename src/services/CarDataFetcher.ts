@@ -11,16 +11,16 @@ interface IndexEntry {
 }
 
 export default class CarDataFetcher<T extends DateAvailable> {
+    private readonly url: string;
     private index: Array<IndexEntry> | undefined;
     private cache: Map<string, T[]> = new Map<string, T[]>();
 
-    public constructor(public url: string) {
-        this.url = url;
-        fetch(`${url}/index.json`)
+    public constructor(url: string) {
+        this.url = url.endsWith('/') ? url.substring(0, url.length - 1) : url;
+        console.log(this.url);
+        fetch(`/${this.url}/index.json`)
             .then(response => response.json())
-            .then(data => {
-                this.index = data;
-            })
+            .then(data => this.index = data);
     }
 
     /**
@@ -34,7 +34,8 @@ export default class CarDataFetcher<T extends DateAvailable> {
         if (fn === null) return null;
         const batch = this.queryBatch(fn);
         if (batch === null) return null;
-        return batch[this.lowerBound(batch, ts)];
+        const i = this.lowerBound(batch, ts);
+        return i >= 0 ? batch[i] : null;
     }
 
     /**
@@ -44,9 +45,13 @@ export default class CarDataFetcher<T extends DateAvailable> {
      * */
     private queryBatch(fn: string): T[] | null {
         if (this.cache.has(fn)) return this.cache.get(fn)!;
-        fetch(`${this.url}/${fn}`)
-            .then(response => response.json())
+        fetch(`/${this.url}/${fn}`)
+            .then(response => {
+                console.log(response)
+                return response.json()
+            })
             .then(data => {
+                console.log(data)
                 this.cache.set(fn, data);
                 return data;
             });
@@ -81,11 +86,10 @@ export default class CarDataFetcher<T extends DateAvailable> {
         if (this.index === undefined) {
             return null;
         }
-        const idx = this.index!;
-        let lo = 0, hi = idx.length - 1;
+        let lo = 0, hi = this.index.length - 1;
         while (lo <= hi) {
             const mid = (lo + hi) >> 1;
-            const s = Date.parse(idx[mid].start), e = Date.parse(idx[mid].end);
+            const s = Date.parse(this.index[mid].start), e = Date.parse(this.index[mid].end);
             if (ts < s) {
                 hi = mid - 1;
             } else if (ts > e) {

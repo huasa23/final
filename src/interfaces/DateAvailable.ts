@@ -1,6 +1,6 @@
 /**
  * Represents a data with a date property, used for {@link CarDataFetcher}
- * Author: Xingyu Zhou
+ * @author Xingyu Zhou
  * */
 export default interface DateAvailable {
     date: string
