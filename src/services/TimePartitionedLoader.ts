@@ -10,6 +10,17 @@ interface IndexEntry {
     end: string
 }
 
+/**
+ * <p>A loader util for loading arrays of data from the web server that are partitioned by time.</p>
+ * <p>
+ * To use it, you need a directory of partitioned files,
+ * each file should contain an array of objects that implement {@link DateAvailable}.
+ * Then, create a file called index.json that contains an array of {@link IndexEntry},
+ * which tells the loader the time range of each file.
+ * </p>
+ * <p>Example: /public/car_data_1/index.json</p>
+ * @author Xingyu Zhou
+ * */
 export default class TimePartitionedLoader<T extends DateAvailable> {
     private readonly url: string;
     private index: Array<IndexEntry> | undefined;
