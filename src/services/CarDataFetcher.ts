@@ -16,7 +16,9 @@ export default class CarDataFetcher<T extends DateAvailable> {
     private cache: Map<string, T[]> = new Map<string, T[]>();
 
     public constructor(url: string) {
-        this.url = url.endsWith('/') ? url.substring(0, url.length - 1) : url;
+        if (url.startsWith('/')) url = url.substring(1);
+        if (url.endsWith('/')) url = url.substring(0, url.length - 1);
+        this.url = url;
         fetch(`/${this.url}/index.json`)
             .then(response => response.json())
             .then(data => this.index = data);

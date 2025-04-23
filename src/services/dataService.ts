@@ -40,7 +40,7 @@ export default async function dataService(sessionId: string) {
         
         for (const driver of allDrivers) {
             allDriversData[driver.driver_number] = driver;
-        };
+        }
         //console.log("allDrivers", allDrivers);
         
         // 使用Promise.all并捕获每个单独的错误
