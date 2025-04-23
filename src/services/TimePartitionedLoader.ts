@@ -10,7 +10,7 @@ interface IndexEntry {
     end: string
 }
 
-export default class CarDataFetcher<T extends DateAvailable> {
+export default class TimePartitionedLoader<T extends DateAvailable> {
     private readonly url: string;
     private index: Array<IndexEntry> | undefined;
     private cache: Map<string, T[]> = new Map<string, T[]>();

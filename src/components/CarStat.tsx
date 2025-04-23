@@ -4,7 +4,7 @@
  * */
 
 import {RefObject, useEffect, useState} from "react";
-import CarDataFetcher from "../services/CarDataFetcher.ts";
+import TimePartitionedLoader from "../services/TimePartitionedLoader.ts";
 import CarData from "../interfaces/CarData.ts";
 import styled from "styled-components";
 
@@ -64,7 +64,7 @@ export default function CarStat({timeRef, driverNumber}: {
     timeRef: RefObject<HTMLDivElement | null>,
     driverNumber: number
 }) {
-    const [fetcher, setFetcher] = useState<CarDataFetcher<CarData> | null>(null);
+    const [fetcher, setFetcher] = useState<TimePartitionedLoader<CarData> | null>(null);
     const carData = getCarData(timeRef.current?.textContent);
 
     function getCarData(displayTime: string | null | undefined): CarData {
@@ -98,7 +98,7 @@ export default function CarStat({timeRef, driverNumber}: {
     }
 
     useEffect(() => {
-        setFetcher(new CarDataFetcher("car_data_" + driverNumber));
+        setFetcher(new TimePartitionedLoader("car_data_" + driverNumber));
     }, [driverNumber]);
 
     return (
