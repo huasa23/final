@@ -1,0 +1,126 @@
+/**
+ * Car stat component for a singular car
+ * @author Xingyu Zhou
+ * */
+
+import {RefObject, useEffect, useState} from "react";
+import CarDataFetcher from "../services/CarDataFetcher.ts";
+import CarData from "../interfaces/CarData.ts";
+import styled from "styled-components";
+
+const START = Date.parse("2023-10-29T19:01:01.838000+00:00");
+
+const Container = styled.div`
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+    background: #e0e0e0;
+    color: #1e1e2f;
+    border-radius: 8px;
+`;
+
+const StatCard = styled.div`
+    background: #e0e0e0;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    text-align: center;
+`;
+
+const Label = styled.div`
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+    opacity: 0.75;
+`;
+
+const Value = styled.div`
+    font-size: 1.5rem;
+    font-weight: bold;
+`;
+
+const BarContainer = styled.div`
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 0.5rem;
+`;
+
+const Bar = styled.div<{ ratio: number }>`
+    width: ${p => Math.min(100, Math.max(0, p.ratio * 100))}%;
+    height: 100%;
+    background: #60c;
+`;
+
+export default function CarStat({timeRef, driverNumber}: { timeRef: RefObject<HTMLDivElement | null>, driverNumber: number }) {
+    const [fetcher, setFetcher] = useState<CarDataFetcher<CarData> | null>(null);
+    const carData = getCarData(timeRef.current?.textContent);
+
+    function getCarData(displayTime: string | null | undefined): CarData {
+        if (displayTime) {
+            const [minute, second] = displayTime.split(':');
+            const date = new Date(START + Number(minute) * 60 * 1000 + Number(second) * 1000);
+            return fetcher?.query(date) || {
+                driver_number: 0,
+                speed: 0,
+                rpm: 0,
+                throttle: 0,
+                brake: 0,
+                drs: 0,
+                date: "",
+                session_key: 0,
+                meeting_key: 0
+            }
+        } else {
+            return {
+                driver_number: 0,
+                speed: 0,
+                rpm: 0,
+                throttle: 0,
+                brake: 0,
+                drs: 0,
+                date: "",
+                session_key: 0,
+                meeting_key: 0
+            }
+        }
+    }
+
+    useEffect(() => {
+        setFetcher(new CarDataFetcher("car_data_" + driverNumber));
+    }, [driverNumber]);
+
+    return (
+        <Container>
+            <StatCard>
+                <Label>Driver #</Label>
+                <Value>{carData.driver_number}</Value>
+            </StatCard>
+            <StatCard>
+                <Label>Speed (km/h)</Label>
+                <Value>{carData.speed.toFixed(0)}</Value>
+            </StatCard>
+            <StatCard>
+                <Label>RPM</Label>
+                <Value>{carData.rpm.toLocaleString()}</Value>
+            </StatCard>
+            <StatCard>
+                <Label>Throttle</Label>
+                <BarContainer>
+                    <Bar ratio={carData.throttle}/>
+                </BarContainer>
+            </StatCard>
+            <StatCard>
+                <Label>Brake</Label>
+                <BarContainer>
+                    <Bar ratio={carData.brake}/>
+                </BarContainer>
+            </StatCard>
+            <StatCard>
+                <Label>DRS</Label>
+                <Value>{carData.drs ? "ON" : "OFF"}</Value>
+            </StatCard>
+        </Container>
+    )
+}

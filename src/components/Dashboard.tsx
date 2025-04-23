@@ -1,8 +1,7 @@
 import styled from "styled-components";
 import useCanvasAnimation from "./RaceAnimationHook";
 import { useParams } from "react-router-dom";
-import { useEffect } from "react";
-import dataService from "../services/dataService";
+import CarStat from "./CarStat.tsx";
 
 const DashboardWrapper = styled.div`
   display: flex;
@@ -142,7 +141,7 @@ export default function Dashboard() {
           onMouseUp={handleMouseUp}
           onMouseMove={handleMouseMove}
           ></ProgressButton>
-            </ProgressContainer>
+            </ProgressContainer>1
             <TimeDisplay>
               <span ref={currentTimeDisplayRef}>00:00</span>
               <span>/</span>
@@ -150,6 +149,8 @@ export default function Dashboard() {
             </TimeDisplay>
           </ProgressWrapper>
         </MapWrapper>
+        <CarStat timeRef={currentTimeDisplayRef} driverNumber={1}></CarStat>
+        <CarStat timeRef={currentTimeDisplayRef} driverNumber={2}></CarStat>
       </DashboardWrapper>
     </>
   );

@@ -48,7 +48,6 @@ function Root() {
 }
 
 function App() {
-
   return (
     <>
       <BodyWrapper>
