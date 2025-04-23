@@ -17,7 +17,6 @@ export default class CarDataFetcher<T extends DateAvailable> {
 
     public constructor(url: string) {
         this.url = url.endsWith('/') ? url.substring(0, url.length - 1) : url;
-        console.log(this.url);
         fetch(`/${this.url}/index.json`)
             .then(response => response.json())
             .then(data => this.index = data);
@@ -47,11 +46,9 @@ export default class CarDataFetcher<T extends DateAvailable> {
         if (this.cache.has(fn)) return this.cache.get(fn)!;
         fetch(`/${this.url}/${fn}`)
             .then(response => {
-                console.log(response)
                 return response.json()
             })
             .then(data => {
-                console.log(data)
                 this.cache.set(fn, data);
                 return data;
             });
