@@ -17,6 +17,7 @@ const useCanvasAnimation = (sessionId: string) => {
   const [lastIndex, setLastIndex] = useState<number>(0);
   const [lastUpdateTime, setLastUpdateTime] = useState<number>(0);
   const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const [minX, setMinX] = useState(0);
   const [minY, setMinY] = useState(0);
@@ -78,7 +79,7 @@ const useCanvasAnimation = (sessionId: string) => {
         car_data[1] = jsonData;
       });
       setAllDriversCarData(car_data);
-      
+      setLoading(false);
       mapDataSetup(allDriversLocationData);
     };
     fetchData();
@@ -428,6 +429,7 @@ const useCanvasAnimation = (sessionId: string) => {
   };
 
   return {
+    loading,
     canvasRef,
     canvasBgRef,
     progressBarContainerRef,

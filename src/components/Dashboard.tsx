@@ -51,6 +51,14 @@ const ControlsWrapper = styled.div`
   flex-direction: column;
   justify-content: center;
 `;
+const LoadingWrapper = styled.div`
+  width: 100%;
+  height: 10%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid black;
+`;
 const ControlButton = styled.button`
   width: 80%;
   height: 30%;
@@ -102,6 +110,7 @@ export default function Dashboard() {
   const params = useParams<{sessionId: string}>();
 
   const {
+    loading,
     canvasRef,
     canvasBgRef,
     progressBarContainerRef,
@@ -129,7 +138,9 @@ export default function Dashboard() {
             <Canvas ref={canvasRef} width="700" height="700"></Canvas>
            
           </CanvasWrapper>
-          <ProgressWrapper>
+          {loading ? (<LoadingWrapper>Loading...</LoadingWrapper>) :
+          (<ProgressWrapper>
+            
             <ControlsWrapper>
               <ControlButton ref={startButtonRef} onClick={handleStartButtonClick}>Start</ControlButton>
               <ControlButton ref={pauseButtonRef} onClick={handlePauseButtonClick}>Pause</ControlButton>
@@ -141,13 +152,13 @@ export default function Dashboard() {
           onMouseUp={handleMouseUp}
           onMouseMove={handleMouseMove}
           ></ProgressButton>
-            </ProgressContainer>1
+            </ProgressContainer>
             <TimeDisplay>
               <span ref={currentTimeDisplayRef}>00:00</span>
               <span>/</span>
               <span ref={totalTimeDisplayRef}>00:00</span>
             </TimeDisplay>
-          </ProgressWrapper>
+          </ProgressWrapper>)}
         </MapWrapper>
         <CarStat timeRef={currentTimeDisplayRef} driverNumber={1}></CarStat>
         <CarStat timeRef={currentTimeDisplayRef} driverNumber={2}></CarStat>

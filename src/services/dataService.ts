@@ -14,11 +14,11 @@ async function fetchWithRetry(url: string, options = {}, maxRetries = 3, delay =
       return await response.json();
     } catch (error) {
       retries++;
-      console.warn(`请求失败(${url})，尝试重试 ${retries}/${maxRetries}:`, error);
+      console.warn(`request failed(${url})，retry ${retries}/${maxRetries}:`, error);
       
       if (retries >= maxRetries) {
-        console.error(`达到最大重试次数(${url}):`, error);
-        throw error;
+        console.error(`reach max retries(${url}):`, error);
+        return [];
       }
       
       await new Promise(resolve => setTimeout(resolve, delay * retries));
@@ -35,22 +35,21 @@ export default async function dataService(sessionId: string) {
     let allDriversCarData: Record<number, CarData[]> = {};
 
     try {
-        // 获取车手数据
+        // drivers data
         allDrivers = await fetchWithRetry(`/api/drivers?session_key=${sessionId}`);
         
         for (const driver of allDrivers) {
             allDriversData[driver.driver_number] = driver;
         }
-        //console.log("allDrivers", allDrivers);
         
-        // 使用Promise.all并捕获每个单独的错误
+        // location data
         const locationPromises = allDrivers.map(async (driver) => {
             try {
                 const locations = await fetchWithRetry(`/api/location?session_key=${sessionId}&driver_number=${driver.driver_number}`);
                 return { driver, locations };
             } catch (error) {
-                console.error(`获取车手${driver.driver_number}位置数据失败:`, error);
-                return { driver, locations: [] }; // 返回空数组作为占位符
+                console.error(`get driver ${driver.driver_number} location data failed:`, error);
+                return { driver, locations: [] };
             }
         });
         
@@ -60,14 +59,14 @@ export default async function dataService(sessionId: string) {
         });
         //console.log("allDriversLocationData", allDriversLocationData);
         
-        // 类似地处理车手数据
+        // // car data
         // const carDataPromises = allDrivers.map(async (driver) => {
         //     try {
         //         const carData = await fetchWithRetry(`/api/car_data?session_key=${sessionId}&driver_number=${driver.driver_number}`);
         //         return { driver, carData };
         //     } catch (error) {
-        //         console.error(`获取车手${driver.driver_number}车辆数据失败:`, error);
-        //         return { driver, carData: [] }; // 返回空数组作为占位符
+        //         console.error(`get driver ${driver.driver_number} car data failed:`, error);
+        //         return { driver, carData: [] }; 
         //     }
         // });
         
@@ -77,18 +76,17 @@ export default async function dataService(sessionId: string) {
         // });
         // console.log("allDriversCarData", allDriversCarData);
         
-        // // 排名数据
+        // // rank data
         // try {
         //     rankData = await fetchWithRetry(`/api/position?session_key=${sessionId}`);
         // } catch (error) {
-        //     console.error("获取排名数据失败:", error);
-        //     rankData = []; // 失败时使用空数组
+        //     console.error("get rank data failed:", error);
+        //     rankData = []; 
         // }
         // console.log("rankData", rankData);
         
     } catch (error) {
-        console.error("数据获取过程中出现错误:", error);
-        // 即使出错也继续返回已获取的部分数据
+        console.error("Error during data fetching:", error);
     }
     
     return {allDriversData, allDriversLocationData, allDriversCarData, rankData};
