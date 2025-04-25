@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import useCanvasAnimation from "./RaceAnimationHook";
 import { useParams } from "react-router-dom";
-import CarStat from "./CarStat.tsx";
+import CarStatBar from "./CarStatBar.tsx";
 
 const DashboardWrapper = styled.div`
   display: flex;
@@ -160,8 +160,7 @@ export default function Dashboard() {
             </TimeDisplay>
           </ProgressWrapper>)}
         </MapWrapper>
-        <CarStat timeRef={currentTimeDisplayRef} driverNumber={1}></CarStat>
-        <CarStat timeRef={currentTimeDisplayRef} driverNumber={2}></CarStat>
+        <CarStatBar timeRef={currentTimeDisplayRef}/>
       </DashboardWrapper>
     </>
   );

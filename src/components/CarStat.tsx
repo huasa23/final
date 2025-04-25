@@ -4,7 +4,7 @@
  * */
 
 import {RefObject, useEffect, useState} from "react";
-import CarDataFetcher from "../services/CarDataFetcher.ts";
+import TimePartitionedLoader from "../services/TimePartitionedLoader.ts";
 import CarData from "../interfaces/CarData.ts";
 import styled from "styled-components";
 
@@ -18,6 +18,8 @@ const Container = styled.div`
     background: #e0e0e0;
     color: #1e1e2f;
     border-radius: 8px;
+    box-sizing: border-box;
+    margin: 1mm;
 `;
 
 const StatCard = styled.div`
@@ -35,7 +37,7 @@ const Label = styled.div`
 `;
 
 const Value = styled.div`
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     font-weight: bold;
 `;
 
@@ -53,8 +55,16 @@ const Bar = styled.div<{ ratio: number }>`
     background: #60c;
 `;
 
-export default function CarStat({timeRef, driverNumber}: { timeRef: RefObject<HTMLDivElement | null>, driverNumber: number }) {
-    const [fetcher, setFetcher] = useState<CarDataFetcher<CarData> | null>(null);
+const BarStatWrapper = styled.div`
+    display: flex;
+    flex-direction: row;
+`;
+
+export default function CarStat({timeRef, driverNumber}: {
+    timeRef: RefObject<HTMLDivElement | null>,
+    driverNumber: number
+}) {
+    const [fetcher, setFetcher] = useState<TimePartitionedLoader<CarData> | null>(null);
     const carData = getCarData(timeRef.current?.textContent);
 
     function getCarData(displayTime: string | null | undefined): CarData {
@@ -88,14 +98,13 @@ export default function CarStat({timeRef, driverNumber}: { timeRef: RefObject<HT
     }
 
     useEffect(() => {
-        setFetcher(new CarDataFetcher("car_data_" + driverNumber));
+        setFetcher(new TimePartitionedLoader("car_data_" + driverNumber));
     }, [driverNumber]);
 
     return (
         <Container>
             <StatCard>
-                <Label>Driver #</Label>
-                <Value>{carData.driver_number}</Value>
+                <Label>Driver #{carData.driver_number}</Label>
             </StatCard>
             <StatCard>
                 <Label>Speed (km/h)</Label>
@@ -105,18 +114,20 @@ export default function CarStat({timeRef, driverNumber}: { timeRef: RefObject<HT
                 <Label>RPM</Label>
                 <Value>{carData.rpm.toLocaleString()}</Value>
             </StatCard>
-            <StatCard>
-                <Label>Throttle</Label>
-                <BarContainer>
-                    <Bar ratio={carData.throttle}/>
-                </BarContainer>
-            </StatCard>
-            <StatCard>
-                <Label>Brake</Label>
-                <BarContainer>
-                    <Bar ratio={carData.brake}/>
-                </BarContainer>
-            </StatCard>
+            <BarStatWrapper>
+                <StatCard style={{padding: "2mm", width: "50%", marginRight: "1mm"}}>
+                    <Label>Throttle</Label>
+                    <BarContainer>
+                        <Bar ratio={carData.throttle}/>
+                    </BarContainer>
+                </StatCard>
+                <StatCard style={{padding: "2mm", width: "50%", marginLeft: "1mm"}}>
+                    <Label>Brake</Label>
+                    <BarContainer>
+                        <Bar ratio={carData.brake}/>
+                    </BarContainer>
+                </StatCard>
+            </BarStatWrapper>
             <StatCard>
                 <Label>DRS</Label>
                 <Value>{carData.drs ? "ON" : "OFF"}</Value>
