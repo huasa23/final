@@ -52,6 +52,7 @@ const useCanvasAnimation = (sessionId: string) => {
   const [allDriversLocationData, setAllDriversLocationData] = useState<Record<number, Location[]>>({});
   const [allDriversCarData, setAllDriversCarData] = useState<Record<number, CarData[]>>({});
   const [positionData, setPositionData] = useState<Position[]>([]);
+  
   useEffect(() => {
     const fetchData = async () => {
       const {allDriversData, allDriversLocationData, allDriversCarData, rankData} = await dataService(sessionId);

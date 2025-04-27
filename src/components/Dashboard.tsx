@@ -69,15 +69,15 @@ const ControlButton = styled.button`
   color: white;
 `;
 const ProgressContainer = styled.div`
-  position: relative; /* 相对定位，为了按钮绝对定位 */
-  width: 80%; /* 进度条宽度 */
+  position: relative;
+  width: 80%; 
   height: 1vh;
-  margin: auto; /* 居中显示 */
+  margin: auto; 
   background-color: #eee;
 `;
 const ProgressBar = styled.div`
   height: 100%;
-  width: 0%; /* 初始进度为0 */
+  width: 0%; 
   background-color: black;
 `;
 const ProgressButton = styled.div`

@@ -45,7 +45,7 @@ export default async function dataService(sessionId: string) {
         // location data
         const locationPromises = allDrivers.map(async (driver) => {
             try {
-                const locations = await fetchWithRetry(`/api/location?session_key=${sessionId}&driver_number=${driver.driver_number}`);
+                const locations = await fetchWithRetry(`/api/location?session_key=${sessionId}&driver_number=${driver.driver_number}&date>2023-10-29T20:00:00+00:00&date<2023-10-29T22:00:00+00:00`);
                 return { driver, locations };
             } catch (error) {
                 console.error(`get driver ${driver.driver_number} location data failed:`, error);

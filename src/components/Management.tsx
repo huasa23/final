@@ -11,14 +11,14 @@ const ManagementWrapper = styled.div`
 `;
 
 const ManagementItem = styled.div`
-  flex-basis: calc(20% - 10px); /* 设置每个网格项的宽度，这里假设每行 3 个，并减去间距 */
-  flex-grow: 0; /* 不允许伸展 */
-  flex-shrink: 0; /* 不允许收缩 */
-  margin: 5px; /* 网格项之间的间距 */
-  height: 100px; /* 设置高度，方便查看 */
+  flex-basis: calc(20% - 10px); 
+  flex-grow: 0; 
+  flex-shrink: 0; 
+  margin: 5px; 
+  height: 100px; 
   border: 1px solid #ddd;
-  box-sizing: border-box; /* 保证 padding 和 border 不会撑大元素 */
-  display: flex; /* 可以让内容居中 */
+  box-sizing: border-box;
+  display: flex; 
   flex-direction: column;
   border-radius: 10px;
 `;
@@ -75,12 +75,12 @@ const SessionLink = styled(Link)`
   
 `;
 const SessionPlayButton = styled.button`
-  background-color: transparent; /* 背景透明 */
-  border: 1px solid #333; /* 边框 */
-  width: 50px; /* 按钮宽度 */
-  height: 30px; /* 按钮高度 */
-  border-radius: 10px; /* 圆角，使其变成圆形 */
-  cursor: pointer; /* 鼠标悬停时显示手型 */
+  background-color: transparent; 
+  border: 1px solid #333; 
+  width: 50px; 
+  height: 30px; 
+  border-radius: 10px; 
+  cursor: pointer;
   display: flex;
   justify-content: center;
   align-items: center;
