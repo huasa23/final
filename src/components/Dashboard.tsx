@@ -2,6 +2,7 @@ import styled from "styled-components";
 import useCanvasAnimation from "./RaceAnimationHook";
 import { useParams } from "react-router-dom";
 import CarStatBar from "./CarStatBar.tsx";
+import {RankDisplay} from "./RankDisplay.tsx";
 
 const DashboardWrapper = styled.div`
   display: flex;
@@ -125,12 +126,16 @@ export default function Dashboard() {
     handleMouseDown,
     handleMouseMove,
     handleMouseUp,
+    currentRanks
   } = useCanvasAnimation(params.sessionId as string);
 
   return (
     <>
       <DashboardWrapper>
-        <RankingWrapper></RankingWrapper>
+        <RankingWrapper>
+
+          <RankDisplay ranks={currentRanks} />
+        </RankingWrapper>
         <MapWrapper>
           <CanvasWrapper>
            

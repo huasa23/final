@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import dataService from "../services/dataService";
 import { Driver, Location, Position, CarData } from "../interfaces/interface";
 
@@ -12,7 +12,10 @@ const useCanvasAnimation = (sessionId: string) => {
   const currentTimeDisplayRef = useRef<HTMLDivElement>(null);
   const totalTimeDisplayRef = useRef<HTMLDivElement>(null);
   const progressBarContainerRef = useRef<HTMLDivElement>(null);
+  const cumulativeDistancesRef = useRef<Record<number, number>>({});
 
+  // current rank
+  const [currentRanks, setCurrentRanks] = useState<{ driverNumber: number, distance: number }[]>([]);
   const [currentIndex, setCurrentIndex] = useState<number>(1);
   const [lastIndex, setLastIndex] = useState<number>(0);
   const [lastUpdateTime, setLastUpdateTime] = useState<number>(0);
@@ -62,7 +65,13 @@ const useCanvasAnimation = (sessionId: string) => {
       setData(allDriversLocationData[1]);
       setAllDriversLocationData(allDriversLocationData);
 
-      fetch("/position_data.json")
+      // initialize cumulative distances to 0 for all
+      Object.keys(allDriversLocationData).forEach(driverNumber => {
+          cumulativeDistancesRef.current[parseInt(driverNumber)] = 0;
+      });
+
+
+        fetch("/position_data.json")
       .then((response) => response.json())
       .then((jsonData: Position[]) => {
         setPositionData(jsonData);
@@ -85,7 +94,7 @@ const useCanvasAnimation = (sessionId: string) => {
     };
     fetchData();
   }, [sessionId]);
-  
+
   //map metadata setup
   const mapDataSetup = (allDriversLocationData: Record<number, Location[]>) => {
     const tempLocationData = allDriversLocationData[1];
@@ -145,7 +154,7 @@ const useCanvasAnimation = (sessionId: string) => {
         return response.blob();
       })
       .then((blob) => {
-        
+
         const imageUrl = URL.createObjectURL(blob);
 
         const img = new Image();
@@ -191,17 +200,47 @@ const useCanvasAnimation = (sessionId: string) => {
         updateProgressBar(progress);
 
         clearScreen();
+
+        // get driver progress list
+        const driverProgressList: { driverNumber: number, distance: number }[] = [];
+        //const goal = data[data.length - 1];
         Object.entries(allDriversLocationData).forEach(([driverNumber, locations]) => {
+            // console.log(Object.keys(allDriversLocationData).length)
+          const num = parseInt(driverNumber);
           const currentDataPoint = locations[currentIndex1];
           const lastDataPoint = locations[lastIndex1];
+          const dx = currentDataPoint.x - lastDataPoint.x;
+          const dy = currentDataPoint.y - lastDataPoint.y;
+
+          // use pythagorean theorem to calculate segment distance
+          const segmentDistance = Math.sqrt(dx * dx + dy * dy);
+
+          // update cumulative distance
+          cumulativeDistancesRef.current[num] += segmentDistance;
+          driverProgressList.push({
+            driverNumber: num,
+            distance: cumulativeDistancesRef.current[num],
+          });
+
+
           const interpolatedX = lastDataPoint.x + (currentDataPoint.x - lastDataPoint.x) * progressRatio;
           const interpolatedY = lastDataPoint.y + (currentDataPoint.y - lastDataPoint.y) * progressRatio;
           const scaledX = (interpolatedX - minX) * scale + offsetX;
           const scaledY = (interpolatedY - minY) * scale + offsetY;
+
+
           console.log("driverNumber", driverNumber, "acronym", allDriversData[Number(driverNumber)].name_acronym, "color", allDriversData[Number(driverNumber)].team_colour);
+
+
           drawPoint(scaledX, scaledY, allDriversData[Number(driverNumber)].name_acronym, allDriversData[Number(driverNumber)].team_colour);
+
+
         });
-        
+
+
+        driverProgressList.sort((a, b) => b.distance  - a.distance );
+        setCurrentRanks(driverProgressList);
+
         const elapsedTime =
           new Date(data[currentIndex1].date).getTime() - startTime;
         updateTimeDisplay(elapsedTime);
@@ -379,6 +418,12 @@ const useCanvasAnimation = (sessionId: string) => {
         setCurrentIndex(1);
         setLastIndex(0);
         setLastUpdateTime(0);
+
+        // reset cumulative distances
+        Object.keys(allDriversLocationData).forEach(driverNumber => {
+          cumulativeDistancesRef.current[parseInt(driverNumber)] = 0;
+        });
+        setCurrentRanks([]);
         if (progressBarRef.current) {
           progressBarRef.current.style.width = `0%`;
         }
@@ -446,6 +491,7 @@ const useCanvasAnimation = (sessionId: string) => {
     handleMouseDown,
     handleMouseMove,
     handleMouseUp,
+    currentRanks
   };
 };
 
