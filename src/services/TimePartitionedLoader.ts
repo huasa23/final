@@ -25,6 +25,7 @@ export default class TimePartitionedLoader<T extends DateAvailable> {
     private readonly url: string;
     private index: Array<IndexEntry> | undefined;
     private cache: Map<string, T[]> = new Map<string, T[]>();
+    private fetchCache: Set<string> = new Set<string>();
 
     public constructor(url: string) {
         if (url.startsWith('/')) url = url.substring(1);
@@ -57,13 +58,21 @@ export default class TimePartitionedLoader<T extends DateAvailable> {
      * */
     private queryBatch(fn: string): T[] | null {
         if (this.cache.has(fn)) return this.cache.get(fn)!;
+        console.log("cache miss, fetching", fn);
+        if (this.fetchCache.has(fn)) return null;
+        this.fetchCache.add(fn);
         fetch(`/${this.url}/${fn}`)
             .then(response => {
                 return response.json()
             })
             .then(data => {
                 this.cache.set(fn, data);
+                this.fetchCache.delete(fn);
                 return data;
+            })
+            .catch(() => {
+                this.fetchCache.delete(fn);
+                console.debug("busy, retry later");
             });
         return null;
     }

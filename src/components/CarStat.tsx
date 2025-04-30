@@ -8,7 +8,19 @@ import TimePartitionedLoader from "../services/TimePartitionedLoader.ts";
 import CarData from "../interfaces/CarData.ts";
 import styled from "styled-components";
 
-const START = Date.parse("2023-10-29T19:01:01.838000+00:00");
+const START_S = "2023-10-29T20:00:00.000000+00:00";
+const START = START_S;
+const EMPTY = {
+    driver_number: 0,
+    speed: 0,
+    rpm: 0,
+    throttle: 0,
+    brake: 0,
+    drs: 0,
+    date: "",
+    session_key: 0,
+    meeting_key: 0
+}
 
 const Container = styled.div`
     display: grid;
@@ -71,34 +83,16 @@ export default function CarStat({timeRef, driverNumber}: {
         if (displayTime) {
             const [minute, second] = displayTime.split(':');
             const date = new Date(START + Number(minute) * 60 * 1000 + Number(second) * 1000);
-            return fetcher?.query(date) || {
-                driver_number: 0,
-                speed: 0,
-                rpm: 0,
-                throttle: 0,
-                brake: 0,
-                drs: 0,
-                date: "",
-                session_key: 0,
-                meeting_key: 0
-            }
+            return fetcher?.query(date) || EMPTY;
         } else {
-            return {
-                driver_number: 0,
-                speed: 0,
-                rpm: 0,
-                throttle: 0,
-                brake: 0,
-                drs: 0,
-                date: "",
-                session_key: 0,
-                meeting_key: 0
-            }
+            return EMPTY;
         }
     }
 
     useEffect(() => {
-        setFetcher(new TimePartitionedLoader("car_data_" + driverNumber));
+        const fetcher = new TimePartitionedLoader<CarData>("car_data_" + driverNumber);
+        setFetcher(fetcher);
+        fetcher.query(START_S);
     }, [driverNumber]);
 
     return (
