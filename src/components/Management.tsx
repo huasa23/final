@@ -5,9 +5,8 @@ const ManagementWrapper = styled.div`
   display: flex;
   flex-wrap: wrap;
   width: 100%;
-  height: 100%;
-  justify-content: center;
-  align-items: center;
+  height: 80vh;
+  
 `;
 
 const ManagementItem = styled.div`
@@ -122,18 +121,6 @@ export default function Management() {
       session_type_name: "Practice",
     },
   ]);
-
-  // useEffect(() => {
-  //   async function fetchData(): Promise<void> {
-  //       const url = "https://127.0.0.1/gamelist";
-  //       let rawData = await fetch(url);
-  //       const {data} = await rawData.json();
-  //       setManagementItems(data);
-  //   }
-  //   fetchData()
-  //       .then(() => console.log("Data fetched successfully"))
-  //       .catch((e: Error) => console.log("There was the error: " + e));
-  // }, []);
   
   return (
     <>
