@@ -8,7 +8,7 @@ import TimePartitionedLoader from "../services/TimePartitionedLoader.ts";
 import CarData from "../interfaces/CarData.ts";
 import styled from "styled-components";
 
-const START = Date.parse("2023-10-29T19:01:01.838000+00:00");
+const START = Date.parse("2023-10-29T20:00:00.000000+00:00");
 
 const Container = styled.div`
     display: grid;
