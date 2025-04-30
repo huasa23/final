@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import styled from "styled-components";
 import { Link } from "react-router-dom";
 const ManagementWrapper = styled.div`
@@ -90,7 +90,7 @@ const SessionPlayButton = styled.button`
   font-weight: 400;
 `;
 export default function Management() {
-  const [managementItems, setManagementItems] = useState([
+  const [managementItems] = useState([
     {
       season: "2025",
       country_key: "MEX",

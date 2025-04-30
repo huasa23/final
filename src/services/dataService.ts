@@ -29,10 +29,10 @@ async function fetchWithRetry(url: string, options = {}, maxRetries = 3, delay =
 export default async function dataService(sessionId: string) {
     
     let allDrivers: Driver[] = [];
-    let allDriversData: Record<number, Driver> = {};
-    let allDriversLocationData: Record<number, Location[]> = {};
-    let rankData: Position[] = [];
-    let allDriversCarData: Record<number, CarData[]> = {};
+    const allDriversData: Record<number, Driver> = {};
+    const allDriversLocationData: Record<number, Location[]> = {};
+    const rankData: Position[] = [];
+    const allDriversCarData: Record<number, CarData[]> = {};
 
     try {
         // drivers data

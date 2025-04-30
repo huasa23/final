@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import dataService from "../services/dataService";
 import { Driver, Location, Position, CarData } from "../interfaces/interface";
 
+let FLAG = false;
+
 const useCanvasAnimation = (sessionId: string) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const canvasBgRef = useRef<HTMLCanvasElement>(null);
@@ -17,29 +19,29 @@ const useCanvasAnimation = (sessionId: string) => {
   // current rank
   const [currentRanks, setCurrentRanks] = useState<{ driverNumber: number, distance: number }[]>([]);
   const [currentIndex, setCurrentIndex] = useState<number>(1);
-  const [lastIndex, setLastIndex] = useState<number>(0);
+  const [, setLastIndex] = useState<number>(0);
   const [lastUpdateTime, setLastUpdateTime] = useState<number>(0);
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [minX, setMinX] = useState(0);
   const [minY, setMinY] = useState(0);
-  const [maxX, setMaxX] = useState(0);
-  const [maxY, setMaxY] = useState(0);
+  const [, setMaxX] = useState(0);
+  const [, setMaxY] = useState(0);
   const [scale, setScale] = useState(0);
   const [offsetX, setOffsetX] = useState(0);
   const [offsetY, setOffsetY] = useState(0);
-  const [scaleX, setScaleX] = useState(0);
-  const [scaleY, setScaleY] = useState(0);
-  const [mapWidth, setMapWidth] = useState(650);
-  const [mapHeight, setMapHeight] = useState(650);
+  const [, setScaleX] = useState(0);
+  const [, setScaleY] = useState(0);
+  const [mapWidth] = useState(650);
+  const [mapHeight] = useState(650);
 
   const [isDragging, setIsDragging] = useState(false);
   const [isPaused, setIsPaused] = useState(true);
   const [animationFrameId, setAnimationFrameId] = useState(0);
-  const [totalDuration, setTotalDuration] = useState(0);
+  const [, setTotalDuration] = useState(0);
   const [startTime, setStartTime] = useState(0);
-  const [endTime, setEndTime] = useState(0);
+  const [, setEndTime] = useState(0);
   const [progressBarRect, setProgressBarRect] = useState({
     left: 0,
     top: 0,
@@ -49,16 +51,17 @@ const useCanvasAnimation = (sessionId: string) => {
     height: 0,
   });
   const [dragOffsetX, setDragOffsetX] = useState(0);
-  const [currentTime, setCurrentTime] = useState(0);
+  const [, setCurrentTime] = useState(0);
 
   const [allDriversData, setAllDriversData] = useState<Record<number, Driver>>({});
   const [allDriversLocationData, setAllDriversLocationData] = useState<Record<number, Location[]>>({});
-  const [allDriversCarData, setAllDriversCarData] = useState<Record<number, CarData[]>>({});
-  const [positionData, setPositionData] = useState<Position[]>([]);
+  const [, setAllDriversCarData] = useState<Record<number, CarData[]>>({});
+  const [, setPositionData] = useState<Position[]>([]);
 
   useEffect(() => {
+
     const fetchData = async () => {
-      const {allDriversData, allDriversLocationData, allDriversCarData, rankData} = await dataService(sessionId);
+      const {allDriversData, allDriversLocationData} = await dataService(sessionId);
       console.log("allDriversData", allDriversData);
       console.log("allDriversLocationData", allDriversLocationData);
       setAllDriversData(allDriversData);
@@ -77,7 +80,7 @@ const useCanvasAnimation = (sessionId: string) => {
         setPositionData(jsonData);
       });
 
-      let car_data = new Array<CarData[]>(2);
+      const car_data = new Array<CarData[]>(2);
       fetch("/car_data_1.json")
       .then((response) => response.json())
       .then((jsonData: CarData[]) => {
@@ -92,7 +95,10 @@ const useCanvasAnimation = (sessionId: string) => {
       setLoading(false);
       mapDataSetup(allDriversLocationData);
     };
-    fetchData();
+    if (!FLAG) {
+      fetchData();
+      FLAG = true;
+    }
   }, [sessionId]);
 
   //map metadata setup
@@ -189,7 +195,7 @@ const useCanvasAnimation = (sessionId: string) => {
           new Date(data[currentIndex1].date).getTime() -
           new Date(data[lastIndex1].date).getTime();
 
-        let timeElapsed = timestamp - lastUpdateTime1;
+        const timeElapsed = timestamp - lastUpdateTime1;
 
         let progressRatio = interval > 0 ? timeElapsed / interval : 0;
         if (progressRatio > 1) {
