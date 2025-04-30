@@ -9,7 +9,7 @@ import CarData from "../interfaces/CarData.ts";
 import styled from "styled-components";
 
 const START_S = "2023-10-29T20:00:00.000000+00:00";
-const START = START_S;
+const START = Date.parse(START_S);
 const EMPTY = {
     driver_number: 0,
     speed: 0,
@@ -92,7 +92,7 @@ export default function CarStat({timeRef, driverNumber}: {
     useEffect(() => {
         const fetcher = new TimePartitionedLoader<CarData>("car_data_" + driverNumber);
         setFetcher(fetcher);
-        fetcher.query(START_S);
+        fetcher.query(new Date(START));
     }, [driverNumber]);
 
     return (
