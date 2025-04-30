@@ -52,7 +52,7 @@ const useCanvasAnimation = (sessionId: string) => {
   const [allDriversLocationData, setAllDriversLocationData] = useState<Record<number, Location[]>>({});
   const [allDriversCarData, setAllDriversCarData] = useState<Record<number, CarData[]>>({});
   const [positionData, setPositionData] = useState<Position[]>([]);
-  
+
   useEffect(() => {
     const fetchData = async () => {
       const {allDriversData, allDriversLocationData, allDriversCarData, rankData} = await dataService(sessionId);
@@ -266,11 +266,12 @@ const useCanvasAnimation = (sessionId: string) => {
 
       ctx.beginPath();
       ctx.roundRect(rectX, rectY, rectWidth, rectHeight, cornerRadius);
-      ctx.fillStyle = "rgba(220, 220, 220, 0)";
+      // ctx.fillStyle = "rgba(220, 220, 220, 0)";
+      ctx.fillStyle = "#00000019";
       ctx.fill();
-      ctx.strokeStyle = `#${color}`;
-      ctx.lineWidth = 1;
-      ctx.stroke();
+      // ctx.strokeStyle = `#${color}`;
+      // ctx.lineWidth = 1;
+      // ctx.stroke();
 
       ctx.fillStyle = `#${color}`;
       ctx.textBaseline = "middle";
