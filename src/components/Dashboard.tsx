@@ -12,7 +12,6 @@ const DashboardWrapper = styled.div`
 const RankingWrapper = styled.div`
   width: 20%;
   height: 80vh;
-  border: 1px solid black;
 `;
 const MapWrapper = styled.div`
   width: 79%;

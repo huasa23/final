@@ -1,4 +1,4 @@
-import { Driver, Location, Position, CarData } from "../interfaces/interface";
+import { Driver, Location } from "../interfaces/interface";
 
 async function fetchWithRetry(url: string, options = {}, maxRetries = 3, delay = 1000): Promise<any> {
   let retries = 0;
@@ -31,8 +31,6 @@ export default async function dataService(sessionId: string) {
     let allDrivers: Driver[] = [];
     let allDriversData: Record<number, Driver> = {};
     let allDriversLocationData: Record<number, Location[]> = {};
-    let rankData: Position[] = [];
-    let allDriversCarData: Record<number, CarData[]> = {};
 
     try {
         // drivers data
@@ -57,37 +55,10 @@ export default async function dataService(sessionId: string) {
         locationResults.forEach(({ driver, locations }) => {
             allDriversLocationData[driver.driver_number] = locations;
         });
-        //console.log("allDriversLocationData", allDriversLocationData);
-        
-        // // car data
-        // const carDataPromises = allDrivers.map(async (driver) => {
-        //     try {
-        //         const carData = await fetchWithRetry(`/api/car_data?session_key=${sessionId}&driver_number=${driver.driver_number}`);
-        //         return { driver, carData };
-        //     } catch (error) {
-        //         console.error(`get driver ${driver.driver_number} car data failed:`, error);
-        //         return { driver, carData: [] }; 
-        //     }
-        // });
-        
-        // const carDataResults = await Promise.all(carDataPromises);
-        // carDataResults.forEach(({ driver, carData }) => {
-        //     allDriversCarData[driver.driver_number] = carData;
-        // });
-        // console.log("allDriversCarData", allDriversCarData);
-        
-        // // rank data
-        // try {
-        //     rankData = await fetchWithRetry(`/api/position?session_key=${sessionId}`);
-        // } catch (error) {
-        //     console.error("get rank data failed:", error);
-        //     rankData = []; 
-        // }
-        // console.log("rankData", rankData);
         
     } catch (error) {
         console.error("Error during data fetching:", error);
     }
     
-    return {allDriversData, allDriversLocationData, allDriversCarData, rankData};
+    return {allDriversData, allDriversLocationData};
 }

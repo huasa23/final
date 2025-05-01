@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import dataService from "../services/dataService";
-import { Driver, Location, Position, CarData } from "../interfaces/interface";
+import { Driver, Location } from "../interfaces/interface";
 
 const useCanvasAnimation = (sessionId: string) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -17,29 +17,22 @@ const useCanvasAnimation = (sessionId: string) => {
   // current rank
   const [currentRanks, setCurrentRanks] = useState<{ driverNumber: number, distance: number }[]>([]);
   const [currentIndex, setCurrentIndex] = useState<number>(1);
-  const [lastIndex, setLastIndex] = useState<number>(0);
   const [lastUpdateTime, setLastUpdateTime] = useState<number>(0);
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [minX, setMinX] = useState(0);
   const [minY, setMinY] = useState(0);
-  const [maxX, setMaxX] = useState(0);
-  const [maxY, setMaxY] = useState(0);
   const [scale, setScale] = useState(0);
   const [offsetX, setOffsetX] = useState(0);
   const [offsetY, setOffsetY] = useState(0);
-  const [scaleX, setScaleX] = useState(0);
-  const [scaleY, setScaleY] = useState(0);
-  const [mapWidth, setMapWidth] = useState(650);
-  const [mapHeight, setMapHeight] = useState(650);
+  const mapWidth = 650;
+  const mapHeight = 650;
 
   const [isDragging, setIsDragging] = useState(false);
   const [isPaused, setIsPaused] = useState(true);
   const [animationFrameId, setAnimationFrameId] = useState(0);
-  const [totalDuration, setTotalDuration] = useState(0);
   const [startTime, setStartTime] = useState(0);
-  const [endTime, setEndTime] = useState(0);
   const [progressBarRect, setProgressBarRect] = useState({
     left: 0,
     top: 0,
@@ -49,18 +42,14 @@ const useCanvasAnimation = (sessionId: string) => {
     height: 0,
   });
   const [dragOffsetX, setDragOffsetX] = useState(0);
-  const [currentTime, setCurrentTime] = useState(0);
 
   const [allDriversData, setAllDriversData] = useState<Record<number, Driver>>({});
   const [allDriversLocationData, setAllDriversLocationData] = useState<Record<number, Location[]>>({});
-  const [allDriversCarData, setAllDriversCarData] = useState<Record<number, CarData[]>>({});
-  const [positionData, setPositionData] = useState<Position[]>([]);
 
+  //fetch data
   useEffect(() => {
     const fetchData = async () => {
-      const {allDriversData, allDriversLocationData, allDriversCarData, rankData} = await dataService(sessionId);
-      console.log("allDriversData", allDriversData);
-      console.log("allDriversLocationData", allDriversLocationData);
+      const {allDriversData, allDriversLocationData} = await dataService(sessionId);
       setAllDriversData(allDriversData);
       setData(allDriversLocationData[1]);
       setAllDriversLocationData(allDriversLocationData);
@@ -70,25 +59,6 @@ const useCanvasAnimation = (sessionId: string) => {
           cumulativeDistancesRef.current[parseInt(driverNumber)] = 0;
       });
 
-
-        fetch("/position_data.json")
-      .then((response) => response.json())
-      .then((jsonData: Position[]) => {
-        setPositionData(jsonData);
-      });
-
-      let car_data = new Array<CarData[]>(2);
-      fetch("/car_data_1.json")
-      .then((response) => response.json())
-      .then((jsonData: CarData[]) => {
-        car_data[0] = jsonData;
-      });
-      fetch("/car_data_2.json")
-      .then((response) => response.json())
-      .then((jsonData: CarData[]) => {
-        car_data[1] = jsonData;
-      });
-      setAllDriversCarData(car_data);
       setLoading(false);
       mapDataSetup(allDriversLocationData);
     };
@@ -106,25 +76,18 @@ const useCanvasAnimation = (sessionId: string) => {
     const newScaleX = mapWidth / (maxX - minX);
     const newScaleY = mapHeight / (maxY - minY);
     const scale = Math.min(newScaleX, newScaleY);
-    console.log("newScaleX", newScaleX, "newScaleY", newScaleY);
-    setScaleX(newScaleX);
-    setScaleY(newScaleY);
-    setScale(Math.min(newScaleX, newScaleY));
 
+    setScale(Math.min(newScaleX, newScaleY));
     setOffsetX((mapWidth - (maxX - minX) * scale) / 2);
     setOffsetY((mapHeight - (maxY - minY) * scale) / 2);
     setMinX(Math.min(...tempLocationData.map((p) => p.x)));
     setMinY(Math.min(...tempLocationData.map((p) => p.y)));
-    setMaxX(Math.max(...tempLocationData.map((p) => p.x)));
-    setMaxY(Math.max(...tempLocationData.map((p) => p.y)));
 
     const startDate = new Date(tempLocationData[0].date).getTime();
     const endDate = new Date(tempLocationData[tempLocationData.length - 1].date).getTime();
     const duration = endDate - startDate;
 
     setStartTime(startDate);
-    setEndTime(endDate);
-    setTotalDuration(duration);
 
     if (totalTimeDisplayRef.current) {
       totalTimeDisplayRef.current.textContent = `${formatTime(duration)}`;
@@ -205,7 +168,6 @@ const useCanvasAnimation = (sessionId: string) => {
         const driverProgressList: { driverNumber: number, distance: number }[] = [];
         //const goal = data[data.length - 1];
         Object.entries(allDriversLocationData).forEach(([driverNumber, locations]) => {
-            // console.log(Object.keys(allDriversLocationData).length)
           const num = parseInt(driverNumber);
           const currentDataPoint = locations[currentIndex1];
           const lastDataPoint = locations[lastIndex1];
@@ -222,19 +184,12 @@ const useCanvasAnimation = (sessionId: string) => {
             distance: cumulativeDistancesRef.current[num],
           });
 
-
           const interpolatedX = lastDataPoint.x + (currentDataPoint.x - lastDataPoint.x) * progressRatio;
           const interpolatedY = lastDataPoint.y + (currentDataPoint.y - lastDataPoint.y) * progressRatio;
           const scaledX = (interpolatedX - minX) * scale + offsetX;
           const scaledY = (interpolatedY - minY) * scale + offsetY;
 
-
-          console.log("driverNumber", driverNumber, "acronym", allDriversData[Number(driverNumber)].name_acronym, "color", allDriversData[Number(driverNumber)].team_colour);
-
-
           drawPoint(scaledX, scaledY, allDriversData[Number(driverNumber)].name_acronym, allDriversData[Number(driverNumber)].team_colour);
-
-
         });
 
 
@@ -282,7 +237,6 @@ const useCanvasAnimation = (sessionId: string) => {
 
   //draw driver point
   const drawPoint = (x: number, y: number, name: string, color: string) => {
-    console.log("drawPoint", x, y, name, color);
     const ctx = canvasRef.current?.getContext("2d");
     if (ctx) {
       ctx.beginPath();
@@ -305,12 +259,8 @@ const useCanvasAnimation = (sessionId: string) => {
 
       ctx.beginPath();
       ctx.roundRect(rectX, rectY, rectWidth, rectHeight, cornerRadius);
-      // ctx.fillStyle = "rgba(220, 220, 220, 0)";
       ctx.fillStyle = "#00000019";
       ctx.fill();
-      // ctx.strokeStyle = `#${color}`;
-      // ctx.lineWidth = 1;
-      // ctx.stroke();
 
       ctx.fillStyle = `#${color}`;
       ctx.textBaseline = "middle";
@@ -327,7 +277,6 @@ const useCanvasAnimation = (sessionId: string) => {
   };
 
   const updateTimeDisplay = (time: number) => {
-    setCurrentTime(time);
     if (currentTimeDisplayRef.current) {
       currentTimeDisplayRef.current.textContent = `${formatTime(time)}`;
     }
@@ -342,7 +291,6 @@ const useCanvasAnimation = (sessionId: string) => {
   };
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    console.log("handleMouseDown");
     setIsDragging(true);
     setIsPaused(true);
     if (pauseButtonRef.current) {
@@ -366,12 +314,8 @@ const useCanvasAnimation = (sessionId: string) => {
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    console.log("handleMouseMove");
     if (!isDragging) return;
     let newButtonLeft = e.clientX - progressBarRect.left - dragOffsetX;
-    console.log("newButtonLeft", newButtonLeft);
-    console.log("progressBarRect.left", progressBarRect.left);
-    console.log("dragOffsetX", dragOffsetX);
 
     if (newButtonLeft < 0) {
       newButtonLeft = 0;
@@ -380,43 +324,30 @@ const useCanvasAnimation = (sessionId: string) => {
     }
 
     const progress = newButtonLeft / progressBarRect.width;
-    console.log("progressBarRect.width", progressBarRect.width);
-    console.log("progress", progress);
     updateProgressBar(progress);
 
     const newIndex = Math.floor(progress * (data.length - 1)) + 1;
-    console.log("newIndex", newIndex);
     if (newIndex > 0 && newIndex < data.length) {
       setCurrentIndex(newIndex);
-      setLastIndex(newIndex - 1);
-      const point = data[newIndex];
-      const scaledX = (point.x - minX) * scale + offsetX;
-      const scaledY = (point.y - minY) * scale + offsetY;
-      drawPoint(scaledX, scaledY, "HAM", "red");
       const elapsedTime = new Date(data[newIndex].date).getTime() - startTime; // 转换为秒
       updateTimeDisplay(elapsedTime);
     }
   };
 
   const handleMouseUp = () => {
-    console.log("handleMouseUp");
     setIsDragging(false);
   };
 
   const handleStartButtonClick = () => {
-    console.log("handleStartButtonClick");
     if (isPaused) {
-      console.log("handleStartButtonClick-start");
       if (startButtonRef.current) {
         startButtonRef.current.textContent = "Restart";
       }
       if (pauseButtonRef.current) {
         pauseButtonRef.current.textContent = "Pause";
       }
-      console.log("data", data);
       if (currentIndex >= data.length) {
         setCurrentIndex(1);
-        setLastIndex(0);
         setLastUpdateTime(0);
 
         // reset cumulative distances
@@ -430,12 +361,10 @@ const useCanvasAnimation = (sessionId: string) => {
         if (progressButtonRef.current) {
           progressButtonRef.current.style.left = `0%`;
         }
-        setCurrentTime(0);
       }
       setLastUpdateTime(performance.now());
       setIsPaused(false);
     } else {
-      console.log("handleStartButtonClick-restart");
       if (startButtonRef.current) {
         startButtonRef.current.textContent = "Start";
       }
@@ -443,7 +372,6 @@ const useCanvasAnimation = (sessionId: string) => {
         pauseButtonRef.current.textContent = "Pause";
       }
       setCurrentIndex(1);
-      setLastIndex(0);
       setLastUpdateTime(0);
       if (progressBarRef.current) {
         progressBarRef.current.style.width = `0%`;
@@ -451,7 +379,6 @@ const useCanvasAnimation = (sessionId: string) => {
       if (progressButtonRef.current) {
         progressButtonRef.current.style.left = `0%`;
       }
-      setCurrentTime(0);
       setIsPaused(true);
     }
   };
